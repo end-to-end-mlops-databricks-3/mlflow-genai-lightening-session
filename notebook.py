@@ -58,7 +58,7 @@ model = SocialPoster(config)
 
 # COMMAND ----------
 
-model_info = model.log_and_register_model("social_poster", "postai/model.py")
+model_info = model.log_and_register_model("social_poster")
 
 # COMMAND ----------
 

@@ -117,7 +117,7 @@ class SocialPoster(PythonModel):
     def create_registered_model(self, model_name, code_path):
         self.mlflow_client.create_registered_model("mlflow_lightening_session.dev.social-ai-staging")
 
-    def log_and_register_model(self, model_name, code_path):
+    def log_and_register_model(self, model_name):
         pip_requirements = [
         "openai",
         "markdownify",
@@ -126,7 +126,7 @@ class SocialPoster(PythonModel):
         with mlflow.start_run():
             model_info = mlflow.pyfunc.log_model(
                 model_name,
-                python_model=code_path,
+                python_model=self,
                 model_config=self.config,
                 pip_requirements=pip_requirements,
             )
