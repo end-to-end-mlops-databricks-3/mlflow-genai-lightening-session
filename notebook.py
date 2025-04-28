@@ -1,5 +1,5 @@
 # Databricks notebook source
-# !pip install markdownify openai
+!pip install markdownify openai
 
 # COMMAND ----------
 
@@ -15,10 +15,11 @@ os.environ["GEMINI_API_KEY"] = dbutils.secrets.get(scope="mlflow_genai", key="GE
 
 # COMMAND ----------
 
-from postai.model import SocialPoster, ModelServing
+from postai.model import SocialPoster
 from postai.model_serving import ModelServing
 
 # COMMAND ----------
+
 
 import os
 
@@ -123,6 +124,8 @@ Check out the complete tutorial here: https://lnkd.in/gdTw8N2S
 
 
 # COMMAND ----------
+
+import mlflow
 
 sample_input = [{
     "example_posts": ["Example 1: This is an example post.", "Example 2: This is another example post."],
