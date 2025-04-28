@@ -6,6 +6,7 @@ from mlflow.pyfunc import PythonModel
 from pydantic import BaseModel
 from typing import List
 from openai import OpenAI
+from mlflow.models import set_model
 from mlflow import MlflowClient
 
 class SocialPostInput(BaseModel):
@@ -17,12 +18,33 @@ class SocialPostOutput(BaseModel):
     post: str
 
 class SocialPoster(PythonModel):
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, config=None):
+        default_config = {
+            "system_prompt": (
+                "You are a social media content specialist with expertise in matching writing "
+                "styles and voice across platforms. Your task is to:\n\n"
+                "1. Analyze the provided example post(s) by examining:\n"
+                "   - Writing style, tone, and voice\n"
+                "   - Sentence structure and length\n\n"
+                "2. Return only the generated post\n"
+            ),
+            
+            "prompt_template": (
+                "example posts:"
+                "{example_posts}"
+                "context:"
+                "{context}"
+                "additional instructions:"
+                "{additional_instructions}"
+            ),
+            
+            "model_provider": "google",
+            "model_name": "gemini-2.0-flash-exp",
+        }
+        self.config = config if config else default_config
         self.tracing_enabled = False
         self.mlflow_client = MlflowClient()
-
-
+        
     @mlflow.trace(span_type="FUNCTION")
     def _webpage_to_markdown(self, url):
         response = requests.get(url)
@@ -89,26 +111,13 @@ class SocialPoster(PythonModel):
             parent_span.set_outputs({"post": post})
         return [{"post": post}]
 
-    def create_registered_model(self, model_name, code_path):
-        self.mlflow_client.create_registered_model("mlflow_lightening_session.dev.social-ai-staging")
-
-    def log_and_register_model(self, model_name, code_path):
+    def log_model(self, model_name, code_path):
         with mlflow.start_run():
             model_info = mlflow.pyfunc.log_model(
                 model_name,
                 python_model=code_path,
                 model_config=self.config,
             )
-
-            mv = self.mlflow_client.create_model_version(
-            name="mlflow_lightening_session.dev.social-ai-staging",
-            source=model_info.model_uri)
-
-            self.mlflow_client.set_registered_model_alias(
-            name="mlflow_lightening_session.dev.social-ai-staging",
-            alias="latest-model",
-            version=mv.version,
-                )
         return model_info
     
-
+set_model(SocialPoster())
